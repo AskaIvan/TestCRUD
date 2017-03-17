@@ -1,10 +1,22 @@
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
+import javax.xml.soap.MessageFactory;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -17,6 +29,9 @@ import javax.swing.table.DefaultTableModel;
  * @author MSI CORE I7-PC
  */
 public class frmMain extends javax.swing.JFrame {
+    String nol_jam = "";
+    String nol_menit = "";
+    String nol_detik = "";
 
     /**
      * Creates new form frmMain
@@ -42,12 +57,15 @@ public class frmMain extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblData = new javax.swing.JTable();
+        labeljam = new javax.swing.JLabel();
+        labeltanggal1 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         btnAdd = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
         Reset = new javax.swing.JButton();
         btnRefresh = new javax.swing.JButton();
         btnEdit = new javax.swing.JButton();
+        print = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
@@ -69,6 +87,10 @@ public class frmMain extends javax.swing.JFrame {
         txtsekasal = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
         txtstatus = new javax.swing.JTextField();
+        txttempatlahir = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        tanggallahir = new com.toedter.calendar.JDateChooser();
+        jLabel13 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
@@ -111,17 +133,17 @@ public class frmMain extends javax.swing.JFrame {
 
         tblData.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "NIS", "NamaSiswa", "JenisKelamin", "Kelas", "Email", "SekolahAsal", "Status", "Alamat"
+                "NIS", "NamaSiswa", "JenisKelamin", "Kelas", "Email", "SekolahAsal", "Status", "Alamat", "TempatLahir", "TanggalLahir"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -137,6 +159,10 @@ public class frmMain extends javax.swing.JFrame {
 
         jPanel3.add(jScrollPane1);
         jScrollPane1.setBounds(0, 0, 430, 340);
+        jPanel3.add(labeljam);
+        labeljam.setBounds(130, 390, 120, 20);
+        jPanel3.add(labeltanggal1);
+        labeltanggal1.setBounds(290, 390, 120, 20);
 
         jPanel4.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -185,22 +211,30 @@ public class frmMain extends javax.swing.JFrame {
             }
         });
 
+        print.setText("Print");
+        print.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                printActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(38, Short.MAX_VALUE)
                 .addComponent(btnAdd)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnDelete)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(Reset)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnRefresh)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnEdit)
-                .addGap(30, 30, 30))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(print)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -211,7 +245,8 @@ public class frmMain extends javax.swing.JFrame {
                     .addComponent(btnDelete)
                     .addComponent(Reset)
                     .addComponent(btnRefresh)
-                    .addComponent(btnEdit))
+                    .addComponent(btnEdit)
+                    .addComponent(print))
                 .addContainerGap(15, Short.MAX_VALUE))
         );
 
@@ -265,6 +300,12 @@ public class frmMain extends javax.swing.JFrame {
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel11.setText("Status");
 
+        jLabel12.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel12.setText("Tempat Lahir");
+
+        jLabel13.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel13.setText("Tanggal Lahir");
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -281,7 +322,7 @@ public class frmMain extends javax.swing.JFrame {
                                 .addComponent(txtNIS, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 106, Short.MAX_VALUE)
                                 .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
@@ -300,9 +341,13 @@ public class frmMain extends javax.swing.JFrame {
                                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel8)
                                     .addComponent(jLabel10)
-                                    .addComponent(jLabel11))
+                                    .addComponent(jLabel11)
+                                    .addComponent(jLabel12)
+                                    .addComponent(jLabel13))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(tanggallahir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txttempatlahir, javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(txtEmail, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
                                     .addComponent(txtsekasal)
                                     .addComponent(txtstatus))))
@@ -341,6 +386,14 @@ public class frmMain extends javax.swing.JFrame {
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11)
                     .addComponent(txtstatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txttempatlahir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel12))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(tanggallahir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel13))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -382,7 +435,7 @@ public class frmMain extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE))
+                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE))
                     .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -411,16 +464,18 @@ public class frmMain extends javax.swing.JFrame {
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         // TODO add your handling code here:
-        if ("".equals(txtNIS.getText())||"".equals(alamat.getText())||"".equals(txtKelas.getText())||"".equals(txtNama.getText())||"".equals(txtEmail.getText())||"".equals(txtsekasal.getText())||"".equals(txtstatus.getText())) {
-            JOptionPane.showMessageDialog(this, "Harap Lengkapi Data", "Error",JOptionPane.WARNING_MESSAGE);
-        } else {
-            String JK ="";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String tanggal=dateFormat.format(tanggallahir.getDate());
+        String JK ="";
             if (rdLaki.isSelected()) {
                 JK = "L";
             } else {
                 JK = "P";
             }
-            String SQL ="INSERT INTO `t_siswa`(`NIS`, `NamaSiswa`, `JenisKelamin`, `Kelas`, `Email`, `SekolahAsal`, `Status`, `Alamat`)" + "VALUES("+txtNIS.getText()+",'"+txtNama.getText()+"','"+JK+"','"+txtKelas.getText()+"','"+txtEmail.getText()+"','"+txtsekasal.getText()+"','"+txtstatus.getText()+"','"+alamat.getText()+"')";
+        if ("".equals(txtNIS.getText())||"".equals(alamat.getText())||"".equals(txtKelas.getText())||"".equals(txtNama.getText())||"".equals(txtEmail.getText())||"".equals(txtsekasal.getText())||"".equals(txtstatus.getText())||"".equals(txttempatlahir.getText())|| tanggal.equals("")) {
+            JOptionPane.showMessageDialog(this, "Harap Lengkapi Data", "Error",JOptionPane.WARNING_MESSAGE);
+        } else {
+            String SQL ="INSERT INTO `t_siswa`(`NIS`, `NamaSiswa`, `JenisKelamin`, `Kelas`, `Email`, `SekolahAsal`, `Status`, `Alamat`, `Tempatlahir`, `Tanggallahir`)" + "VALUES("+txtNIS.getText()+",'"+txtNama.getText()+"','"+JK+"','"+txtKelas.getText()+"','"+txtEmail.getText()+"','"+txtsekasal.getText()+"','"+txtstatus.getText()+"','"+alamat.getText()+"','"+txttempatlahir.getText()+"','"+tanggal+"')";
             int status = KoneksiDB.execute(SQL);
             if (status==1) {
                 JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan","Sukses", JOptionPane.INFORMATION_MESSAGE);
@@ -456,6 +511,8 @@ public class frmMain extends javax.swing.JFrame {
         alamat.setText("");
         txtsekasal.setText("");
         txtstatus.setText("");
+        txttempatlahir.setText("");
+        tanggallahir.getDate();
         buttonGroup1.clearSelection();
     }//GEN-LAST:event_ResetActionPerformed
 
@@ -466,6 +523,8 @@ public class frmMain extends javax.swing.JFrame {
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
         // TODO add your handling code here:
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String tanggal=dateFormat.format(tanggallahir.getDate());
         if ("".equals(txtNIS.getText())||"".equals(alamat.getText())||"".equals(txtKelas.getText())||"".equals(txtNama.getText())||"".equals(txtEmail.getText())||"".equals(txtsekasal.getText())||"".equals(txtstatus.getText())) {
             JOptionPane.showMessageDialog(this, "Harap Lengkapi Data", "Error",JOptionPane.WARNING_MESSAGE);
         } else {
@@ -475,7 +534,7 @@ public class frmMain extends javax.swing.JFrame {
             } else {
                 JK = "P";
             }
-            String SQL ="UPDATE `t_siswa` SET `NIS`="+txtNIS.getText()+",`NamaSiswa`='"+txtNama.getText()+"',`JenisKelamin`='"+JK+"',`Kelas`='"+txtKelas.getText()+"',`Email`='"+txtEmail.getText()+"',`SekolahAsal`='"+txtsekasal.getText()+"',`Status`='"+txtstatus.getText()+"',`Alamat`='"+alamat.getText()+"' WHERE `NIS`="+txtNIS.getText();
+            String SQL ="UPDATE `t_siswa` SET `NIS`="+txtNIS.getText()+",`NamaSiswa`='"+txtNama.getText()+"',`JenisKelamin`='"+JK+"',`Kelas`='"+txtKelas.getText()+"',`Email`='"+txtEmail.getText()+"',`SekolahAsal`='"+txtsekasal.getText()+"',`Status`='"+txtstatus.getText()+"',`Alamat`='"+alamat.getText()+"',`Tempatlahir`='"+txttempatlahir.getText()+"',`Tanggallahir`='"+tanggal+"' WHERE `NIS`="+txtNIS.getText();
             int status = KoneksiDB.execute(SQL);
             if (status==1) {
                 JOptionPane.showMessageDialog(this, "Data berhasil diubah","Sukses", JOptionPane.INFORMATION_MESSAGE);
@@ -488,6 +547,7 @@ public class frmMain extends javax.swing.JFrame {
 
     private void tblDataMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDataMouseClicked
         // TODO add your handling code here:
+        SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
         int baris = tblData.getSelectedRow();
         if (baris!=0||baris!=1) {
             txtNIS.setText(tblData.getValueAt(baris, 0).toString());
@@ -502,8 +562,27 @@ public class frmMain extends javax.swing.JFrame {
             txtsekasal.setText(tblData.getValueAt(baris, 5).toString());
             txtstatus.setText(tblData.getValueAt(baris, 6).toString());
             alamat.setText(tblData.getValueAt(baris, 7).toString());
+            txttempatlahir.setText(tblData.getValueAt(baris, 8).toString());
+            Date dateFormat = null;
+            try {
+                dateFormat = date.parse(tblData.getValueAt(baris, 9).toString());
+            } catch (Exception ex) {
+                Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            tanggallahir.setDate(dateFormat);
         }
     }//GEN-LAST:event_tblDataMouseClicked
+
+    private void printActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printActionPerformed
+        // TODO add your handling code here:
+        MessageFormat header = new MessageFormat("Biodata Siswa SMK Telkom");
+        MessageFormat footer = new MessageFormat("Page {0,number,integer}     ");
+        try {
+            tblData.print(JTable.PrintMode.FIT_WIDTH, header, footer, true, null, true, null);
+        } catch (Exception e) {
+            System.err.format("Cannot Print %s%n",e.getMessage());
+        }
+    }//GEN-LAST:event_printActionPerformed
 
     /**
      * @param args the command line arguments
@@ -551,6 +630,8 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -567,8 +648,12 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel labeljam;
+    private javax.swing.JLabel labeltanggal1;
+    private javax.swing.JButton print;
     private javax.swing.JRadioButton rdLaki;
     private javax.swing.JRadioButton rdPerempuan;
+    private com.toedter.calendar.JDateChooser tanggallahir;
     private javax.swing.JTable tblData;
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtKelas;
@@ -576,6 +661,7 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JTextField txtNama;
     private javax.swing.JTextField txtsekasal;
     private javax.swing.JTextField txtstatus;
+    private javax.swing.JTextField txttempatlahir;
     // End of variables declaration//GEN-END:variables
 
     private void selectData() {
@@ -605,5 +691,36 @@ public class frmMain extends javax.swing.JFrame {
             Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
         }
         tblData.setModel(dtm);
+    }
+    public void setTanggal(){
+        java.util.Date skrg = new java.util.Date();
+        java.text.SimpleDateFormat kal = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        labeljam.setText(kal.format(skrg));
+    }
+    public void setJam(){
+        ActionListener taskPerformer = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                Date dt = new Date();
+                int nilai_jam = dt.getHours();
+                int nilai_menit = dt.getMinutes();
+                int nilai_detik = dt.getSeconds();
+                if (nilai_jam<=9) {
+                    nol_jam = "0";
+                }
+                if (nilai_menit<=9) {
+                    nol_menit = "0";
+                }
+                if (nilai_detik<=9) {
+                    nol_detik = "0";
+                }
+                String jam = nol_jam + Integer.toString(nilai_jam);
+                String menit = nol_menit + Integer.toString(nilai_menit);
+                String detik = nol_detik + Integer.toString(nilai_detik);
+                
+                labeljam.setText("Jam "+jam+":"+menit+":"+detik);
+            }
+        };
+        new Timer (100, taskPerformer).start();
     }
 }
